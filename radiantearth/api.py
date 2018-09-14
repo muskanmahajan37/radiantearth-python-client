@@ -23,7 +23,7 @@ base_git = 'https://raw.githubusercontent.com/'
 
 SPEC_PATH = os.getenv(
     'RE_API_SPEC_PATH',
-    base_git+'radiantearth/radiantearth-python-client/dev/radiantearth/spec.yml',
+    base_git + 'radiantearth/radiantearth-python-client/dev/radiantearth/spec.yml',
 )
 
 
