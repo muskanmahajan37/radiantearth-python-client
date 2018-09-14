@@ -2,8 +2,8 @@ import setuptools
 
 setuptools.setup(
     name="radiantearth",
-    version="0.6.0",
-    description='A Python client for Radiant Earth, a web platform for '
+    version="0.5.0",
+    description='A Python client for Radiant Earth Foundation platform, a web tool for '
     'combining, analyzing, and publishing raster data.',
     long_description=open('README.rst').read(),
     url='https://github.com/radiantearth/radiantearth-python-client',
@@ -17,7 +17,7 @@ setuptools.setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
     ],
-    keywords='raster earth-observation geospatial geospatial-processing radiant earth',
+    keywords='raster earth-observation geospatial geospatial-processing radiant earth global-development',
     packages=setuptools.find_packages(exclude=['tests']),
     package_data={'': ['*.yml']},
     install_requires=[
