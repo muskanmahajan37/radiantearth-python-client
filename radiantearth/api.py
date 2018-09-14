@@ -21,7 +21,7 @@ except ImportError:
 
 SPEC_PATH = os.getenv(
     'RE_API_SPEC_PATH',
-    'https://raw.githubusercontent.com/radiantearth/raster-foundry-python-client/feature/reskin/radiantearth/spec.yml',
+    'https://github.com/radiantearth/radiantearth-python-client/blob/dev/radiantearth/spec.yml',
 )
 
 
