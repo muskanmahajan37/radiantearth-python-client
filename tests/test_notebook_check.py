@@ -1,7 +1,7 @@
 def test_warn_without_notebook_support():
-    import rasterfoundry.decorators
-    rasterfoundry.decorators.NOTEBOOK_SUPPORT = False
-    from rasterfoundry.decorators import check_notebook
+    import radiantearth.decorators
+    radiantearth.decorators.NOTEBOOK_SUPPORT = False
+    from radiantearth.decorators import check_notebook
 
     @check_notebook
     def f():
@@ -10,9 +10,9 @@ def test_warn_without_notebook_support():
 
 
 def test_warn_without_notebook_support_with_args():
-    import rasterfoundry.decorators
-    rasterfoundry.decorators.NOTEBOOK_SUPPORT = False
-    from rasterfoundry.decorators import check_notebook
+    import radiantearth.decorators
+    radiantearth.decorators.NOTEBOOK_SUPPORT = False
+    from radiantearth.decorators import check_notebook
 
     @check_notebook
     def f(*args, **kwargs):
@@ -21,9 +21,9 @@ def test_warn_without_notebook_support_with_args():
 
 
 def test_no_warn_with_notebook_support():
-    import rasterfoundry.decorators
-    rasterfoundry.decorators.NOTEBOOK_SUPPORT = True
-    from rasterfoundry.decorators import check_notebook
+    import radiantearth.decorators
+    radiantearth.decorators.NOTEBOOK_SUPPORT = True
+    from radiantearth.decorators import check_notebook
 
     @check_notebook
     def f():
