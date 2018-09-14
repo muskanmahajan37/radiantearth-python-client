@@ -17,7 +17,8 @@ setuptools.setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
     ],
-    keywords='raster earth-observation geospatial geospatial-processing radiant earth global-development',
+    keywords='raster earth-observation geospatial geospatial-processing \
+            radiant earth global-development',
     packages=setuptools.find_packages(exclude=['tests']),
     package_data={'': ['*.yml']},
     install_requires=[

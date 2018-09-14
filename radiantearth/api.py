@@ -19,9 +19,11 @@ except ImportError:
     from urlparse import urlparse
 
 
+base_git = 'https://raw.githubusercontent.com/'
+
 SPEC_PATH = os.getenv(
     'RE_API_SPEC_PATH',
-    'https://raw.githubusercontent.com/radiantearth/radiantearth-python-client/dev/radiantearth/spec.yml',
+    base_git+'radiantearth/radiantearth-python-client/dev/radiantearth/spec.yml',
 )
 
 
