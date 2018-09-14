@@ -1,7 +1,7 @@
 radiantearth-python-client
 ============================
 
-A Python client for `Radiant Earth Foundation platform <https://doc.radiant.earth/>`_, a web tool for combining, analyzing, and publishing raster data.
+A Python client for `Radiant Earth platform <https://doc.radiant.earth/>`_, a web tool for combining, analyzing, and publishing raster data.
 
 Usage
 -----
