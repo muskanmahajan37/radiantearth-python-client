@@ -21,7 +21,7 @@ except ImportError:
 
 SPEC_PATH = os.getenv(
     'RE_API_SPEC_PATH',
-    'https://github.com/radiantearth/radiantearth-python-client/blob/dev/radiantearth/spec.yml',
+    'https://raw.githubusercontent.com/radiantearth/radiantearth-python-client/dev/radiantearth/spec.yml',
 )
 
 

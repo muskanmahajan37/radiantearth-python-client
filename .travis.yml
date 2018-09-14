@@ -16,7 +16,6 @@ deploy:
   provider: pypi
   user: radiantearth
   password:
-    secure: 
   on:
     tags: true
     distributions: sdist bdist_wheel
