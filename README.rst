@@ -76,3 +76,10 @@ Contribute
 ----------
 
 If you find this client useful and would like to contribute, make a pull request or send us an email at ``code@radiant.earth``.
+
+
+Developers
+----------
+
+- `Radiant Earth Foundation <https://www.radiant.earth/>`
+- `Azavea <https://www.azavea.com/>`
