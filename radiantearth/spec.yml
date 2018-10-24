@@ -4,13 +4,13 @@ info:
   description: An application to find, view, and analyze geospatial data at any scale
   version: "0.1.0"
 
-host: app.radiant.earth
+host: api.radiant.earth
 
 schemes:
   - http
   - https
 
-basePath: /api
+basePath: /platform
 
 produces:
   - application/json
