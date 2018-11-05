@@ -169,8 +169,15 @@ class API(object):
                 exports.append(Export(export, self))
         return exports
 
-    def get_datasources(self, **kwargs):
-        return self.client.Datasources.get_datasources(**kwargs).result()
+    def get_datasources(self):
+        datasources = []
+        for datasource in self.client.Datasources.get_datasources().result().results:
+            datasources.append(Datasource(datasource, self))
+        return datasources
+
+    def get_datasource_by_id(self, datasource_id):
+        return self.client.Datasources.get_datasources_datasourceID(
+            datasourceID=datasource_id).result()
 
     def get_scenes(self, **kwargs):
         bbox = kwargs.get('bbox')
