@@ -10,7 +10,7 @@ from simplejson import JSONDecodeError
 
 from .aws.s3 import str_to_file
 from .exceptions import RefreshTokenException
-from .models import Analysis, MapToken, Project, Export
+from .models import Analysis, MapToken, Project, Export, Datasource
 from .settings import RV_TEMP_URI
 
 try:
@@ -169,15 +169,27 @@ class API(object):
                 exports.append(Export(export, self))
         return exports
 
-    def get_datasources(self, **kwargs):
-        return self.client.Datasources.get_datasources(**kwargs).result()
+    def get_datasources(self):
+        datasources = []
+        for datasource in self.client.Datasources.get_datasources().result().results:
+            datasources.append(Datasource(datasource, self))
+        return datasources
+
+    def get_datasource_by_id(self, datasource_id):
+        return self.client.Datasources.get_datasources_datasourceID(
+            datasourceID=datasource_id).result()
 
     def get_scenes(self, **kwargs):
         bbox = kwargs.get('bbox')
+        
         if bbox and hasattr(bbox, 'bounds'):
+            # if you pass a shapefile
             kwargs['bbox'] = ','.join(str(x) for x in bbox.bounds)
+        
         elif bbox and type(bbox) != type(','.join(str(x) for x in bbox)): # NOQA
+            # if you pass an array of bounds (similar to shapely's box.bounds)
             kwargs['bbox'] = ','.join(str(x) for x in bbox)
+
         return self.client.Imagery.get_scenes(**kwargs).result()
 
     def get_project_config(self, project_ids, annotations_uris=None):
