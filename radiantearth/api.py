@@ -179,18 +179,126 @@ class API(object):
         return self.client.Datasources.get_datasources_datasourceID(
             datasourceID=datasource_id).result()
 
-    def get_scenes(self, **kwargs):
-        bbox = kwargs.get('bbox')
+    def get_scenes(shape_id=None, bbox=None, datasource=[], maxCloudCover=10, minAcquisitionDatetime=None, maxAcquisitionDatetime=None, **kwargs):
+        """
+        Get a list of scenes corresponding to datasource type, date, shape and cloudcover.
+        
+        Common arguments have been included as defaults. For a full list of args
+        visit https://doc.radiant.earth/#/scenes/#get
+
+        datasource = list of datasource IDs (each ID is a string)
+        shape_id = 'c2fae467-180b-483c-8666-dbbb25181023' (string of shape ID. Use create_shape() to upload shape to platform)
+        maxCloudCover = 10 float percentage of cloud cover (0-100, eg 13.26 is valid)
+        minAcquisitionDatetime = '2015-01-21T00:00:00.000Z' (string in iso 8601 format)
+        maxAcquisitionDatetime = '2017-01-21T00:00:00.000Z' (string in iso 8601 format)
+        bbox = '-62.32131958007813,17.472502452750295,-61.60720825195313,17.746070780233786' (string) or shapefile
+        """
+
+        if not shape_id or not bbox:
+            raise ValueError("Must pass platform shape_id or bbox.")
+        if (shape_id and bbox):
+            raise ValueError("Can not pass both a shape_id and a bbox.")
+        
+        params = {}
+        
+        params['maxCloudCover'] = maxCloudCover
+        
+        if shape_id:
+            params['shape'] = shape_id
         
         if bbox and hasattr(bbox, 'bounds'):
             # if you pass a shapefile
-            kwargs['bbox'] = ','.join(str(x) for x in bbox.bounds)
+            params['bbox'] = ','.join(str(x) for x in bbox.bounds)
         
         elif bbox and type(bbox) != type(','.join(str(x) for x in bbox)): # NOQA
             # if you pass an array of bounds (similar to shapely's box.bounds)
-            kwargs['bbox'] = ','.join(str(x) for x in bbox)
+            params['bbox'] = ','.join(str(x) for x in bbox)
+        
+        if datasource:
+            params['datasource'] = datasource
+        
+        if minAcquisitionDatetime:
+            params['minAcquisitionDatetime'] = minAcquisitionDatetime
+            
+        if maxAcquisitionDatetime:
+            params['maxAcquisitionDatetime'] = maxAcquisitionDatetime
+        
+        # add kwargs from documentation to params
+        # for all arguments to scenes/ endpoint go to
+        # https://doc.radiant.earth/#/scenes/#get
+        for key, value in kwargs.items():
+            params[key] = value
+        
+            
+        return self.client.Imagery.get_scenes(params).result()
 
-        return self.client.Imagery.get_scenes(**kwargs).result()
+    def visualize(scene, zoom_level=0.2, geojson=None, bbox=None):
+        """
+        Renders footprints of AOI and scene
+        """
+        
+        if geojson:
+            # convert aoi to polygon
+            aoi_shape = geometry.shape(geojson['geometry'])
+
+        elif bbox:
+            # if bbox is str
+            if isinstance(bbox, str):
+                bbox = [float(x) for x in bbox.split(",")]
+            # convert bbox tuple to Polygon
+            aoi_shape = geometry.box(*bbox)
+        
+        else:
+            raise ValueError("Must pass either a geojson object or bounding box.")
+            
+        scene_boundary = scene['dataFootprint']
+        scene_boundary_shape = geometry.shape(scene_boundary)
+
+        # grab center from aoi polygon/multipolygon
+        center = aoi_shape.centroid.coords[0]
+        albers = cartopy.crs.AlbersEqualArea(central_latitude=center[1], central_longitude=center[0])
+        lonlat_crs = cartopy.crs.PlateCarree()
+
+        fig = plt.figure(figsize=(6, 8))
+
+        # specify projection of the map
+        ax = plt.subplot(projection=albers)
+        
+        # add scene and aoi geometries to plot
+        ax.add_geometries([aoi_shape], lonlat_crs, alpha=0.5, color='blue')
+        ax.add_geometries([scene_boundary_shape], lonlat_crs, alpha=0.1, color='green')
+        
+        
+        # create a combined polygon to ensure both aoi and scene footprints are displayed 
+        aoi_polygon_objects = [aoi_shape]
+        aoi_polygon_objects.extend([scene_boundary_shape])
+        combined_polygon = cascaded_union(aoi_polygon_objects)
+        
+        # set the plot extent to the edges of the combined_polygon
+        combined_bbox = combined_polygon.bounds
+        combined_extent = (combined_bbox[0], combined_bbox[2], combined_bbox[1], combined_bbox[3])
+
+        # zoom out slightly beyond edge of aoi and scene polygons
+        zoom = (-zoom_level, zoom_level, -zoom_level, zoom_level)
+        combined_extent_zoom = [sum(x) for x in zip(combined_extent, zoom)]
+
+        # apply extent to actual plot
+        ax.set_extent(combined_extent_zoom, crs=lonlat_crs)
+        ax.gridlines(crs=lonlat_crs)
+
+        datasource_name = scene['datasource']['name']
+        cloud_cover = get_cloud_cover(scene)
+        acquisition_date = get_timestamp(scene)
+        scene_id = scene['id']
+
+        print(datasource_name)
+        print("Acquisition date = {}".format(acquisition_date))
+        print("Cloud cover percentage = {}".format(cloud_cover))
+        print("Scene ID = {}".format(scene_id))
+
+        plt.title('{}'.format(scene_id))
+        plt.show()
+
 
     def get_project_config(self, project_ids, annotations_uris=None):
         """Get data needed to create project config file for prep_train_data
