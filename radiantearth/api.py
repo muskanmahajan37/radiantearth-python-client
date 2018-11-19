@@ -18,6 +18,8 @@ from shapely.ops import cascaded_union
 from matplotlib import pyplot as plt
 import cartopy
 
+import datetime
+
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -327,6 +329,23 @@ class API(object):
         
         return cloudCover
 
+    def convert_date_isoformat(self, datestring):
+        """"
+        Convert datestrings  of L8format 'yyyy-mm-dd' to Iso 8601 timestamp format
+        """
+        
+        # MODIS/Terra and MODIS/Aqua
+        if len(datestring) == 7:
+            d = datetime.datetime.strptime(datestring, '%Y%j')
+        
+        # Landsat 8 format 'yyyy-mm-dd'
+        elif len(datestring) == 10:
+            d = datetime.datetime.strptime(datestring, "%Y-%m-%d")
+        
+        d = d.isoformat()+".000Z"
+        
+        return d
+
     def get_timestamp(self, scene):
         """
         Parses either Scene object or scene JSON metadata and returns timestamp
@@ -342,10 +361,19 @@ class API(object):
         if scene['datasource']['id'] == '697a0b91-b7a8-446e-842c-97cda155554d': # Lansat 8
             timestamp = scene['sceneMetadata']['acquisitionDate']
             # L8 needs to reformat timestamp to match others
-            timestamp = convert_date_isoformat(timestamp)
-        
+            timestamp = self.convert_date_isoformat(timestamp)
+       
+        # S2 aquisition date is already in correct time format
         elif scene['datasource']['id'] == '4a50cb75-815d-4fe5-8bc1-144729ce5b42': # Sentinel-2
             timestamp = scene['sceneMetadata']['timeStamp']
+        
+        elif scene['datasource']['id'] == 'a11b768b-d869-476e-a1ed-0ac3205ed761': # MODIS/Terra
+            timestamp = scene['name'].split(".")[1][1:] # str in julian date
+            timestamp = self.convert_date_isoformat(timestamp) # standardize
+        
+        elif scene['datasource']['id'] == '55735945-9da5-47c3-8ae4-572b5e11205b': #MODIS/Aqua
+            timestamp = scene['name'].split(".")[1][1:] # str in julian date
+            timestamp = self.convert_date_isoformat(timestamp) # standardize
 
         return timestamp
 

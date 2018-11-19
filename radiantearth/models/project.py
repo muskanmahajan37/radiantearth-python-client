@@ -17,7 +17,7 @@ from ..utils import get_all_paginated
 if NOTEBOOK_SUPPORT:
     from ipyleaflet import (
         Map,
-        SideBySideControl,
+#         SideBySideControl,
         TileLayer,
     )
 
