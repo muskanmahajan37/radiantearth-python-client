@@ -2201,6 +2201,16 @@ paths:
         - Imagery
       parameters:
         - $ref: '#/parameters/projectID'
+        - name: sceneIDs
+          in: body
+          description: |
+            The z order for scenes in this project, relative to each other. The first listed scene will be visualized
+            on top of all the others, and the last listed scene will be visualized below all the others.
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
       responses:
         204:
           description: 'Successfully updated order of scenes in project'
