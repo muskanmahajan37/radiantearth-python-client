@@ -46,19 +46,57 @@ class Project(object):
         self.id = project.id
 
     @classmethod
-    def create(cls, api, project_create):
-        """Post a project to Radiant Earth
-
-        Args:
-            api (API): API to use for requests
-            project_create (dict): post parameters for /projects. See
-                project_create
-
-        Returns:
-            Project: created object in Radiant Earth
+    def create(
+            cls, api, name, description="", visibility="PRIVATE", 
+            tileVisibility="PRIVATE", isAOIProject=False, tags=[]):
         """
-        return api.client.Imagery.post_projects(project=project_create)
+        Creates a new project on the platform.
+        
+        Args:
 
+        api is the api object instantiated with your refresh token
+
+        name is a string defining the project's name
+        
+        description is a string containing a breif description of your project
+        
+        visibility can be PRIVATE (only accessible to you) or PUBLIC 
+        (accessible to everyone on the platform)
+        
+        tileVisibility can be PRIVATE (only accessible to you or others whom 
+        you share a mapToken with) or PUBLIC (accessible to everyone)
+        
+        tags is an array of strings 
+        
+        isAOIProject is a boolean variables (True or False) that specifies 
+        if a project is Standard (False) or AOI (True).
+        AOI Project is used to actively monitor if a new scene is available 
+        over your area of interest. New scenes will be        
+        
+        Returns:
+            Radiant Earth Project object
+        """
+
+        body = {"name": name, 
+                  "description": description, 
+                  "visibility": visibility, 
+                  "tileVisibility": tileVisibility, 
+                  "tags": tags, 
+                  "isAOIProject": isAOIProject 
+                 }
+        
+        project = api.client.Imagery.post_projects(project=body).result()
+ 
+        return Project(project, api)
+
+    def add_scenes(self, scene_ids=[]):
+        """
+        Add unordered list of scenes to a project.
+        Returns integer of number of new scenes being ingested into project.
+        """
+        return self.api.client.Imagery.post_projects_projectID_scenes(
+                projectID=self.id, scenes=scene_ids).future.result().json()    
+    
     def get_center(self):
         """Get the center of this project's extent"""
         coords = self._project.extent.get('coordinates')
@@ -214,8 +252,8 @@ class Project(object):
 
     def get_scenes(self):
         def get_page(page):
-            return self.api.client.Imagery.get_projects_uuid_scenes(
-                uuid=self.id, page=page).result()
+            return self.api.client.Imagery.get_projects_projectID_scenes(
+                projectID=self.id, page=page).result()
 
         return get_all_paginated(get_page)
 
@@ -227,6 +265,9 @@ class Project(object):
         # Need to reverse so that order is from bottom-most to top-most layer.
         return list(reversed(get_all_paginated(get_page)))
 
+    def get_scenes_ingest_status(self):
+        return {scene.id:scene.statusFields.ingestStatus for scene in self.get_scenes()}
+    
     def get_image_source_uris(self):
         """Return sourceUris of images for with this project sorted by z-index."""
         source_uris = []

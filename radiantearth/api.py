@@ -121,11 +121,18 @@ class API(object):
             has_next = paginated_map_tokens.hasNext
         return map_tokens
 
-    @property
-    def projects(self):
-        """List projects a user has access to
+    def projects(self, ownershipType="owned", dict_out=True):
+        """List projects a user has access to. Defaults to 
+        ownershipType="owned" but can also pass in "shared" or
+        "inherited" ownershipTypes. if dict_out==True, returns 
+        a dictionary, otherwise returns a list of Project objects.
 
         Returns:
+            
+            by default-
+            {proj_id:Project}
+            
+            optionally-
             List[Project]
         """
         has_next = True
@@ -133,13 +140,17 @@ class API(object):
         page = 0
         while has_next:
             paginated_projects = self.client.Imagery.get_projects(
-                page=page).result()
+                ownershipType=ownershipType, page=page).result()
             has_next = paginated_projects.hasNext
             page = paginated_projects.page + 1
             for project in paginated_projects.results:
                 projects.append(Project(project, self))
+        
+        if dict_out:
+            return {project.id:project for project in projects}
+        
         return projects
-
+    
     @property
     def analyses(self):
         """List analyses a user has access to
@@ -177,12 +188,26 @@ class API(object):
         return exports
 
     def get_datasources(self):
-        datasources = []
+        """
+        Returns dict of all datasources accessible by your account
+        """
+
+        datasources_list = []
+        
+        # instantiate Datasource objects
         for datasource in self.client.Datasources.get_datasources().result().results:
-            datasources.append(Datasource(datasource, self))
-        return datasources
+            datasources_list.append(Datasource(datasource, self))
+        
+        # put in dictionary for easy access
+        ds_dict = {x.name:x for x in datasources_list}
+        
+        return ds_dict
 
     def get_datasource_by_id(self, datasource_id):
+        """
+        Get details of datasource by id lookup
+        """
+
         return self.client.Datasources.get_datasources_datasourceID(
             datasourceID=datasource_id).result()
     
@@ -376,6 +401,51 @@ class API(object):
             timestamp = self.convert_date_isoformat(timestamp) # standardize
 
         return timestamp
+
+    def fill_aoi(self, results, aoi_polygon, datasource_id):
+        """
+        Takes a list of scene objects (from get_scenes()) and returns 
+        an ordered list of scene ids from most recent time (in results query) 
+        that cover aoi. Scene ids are reversed so the most recent scene 
+        is last, with the effect that in the platform scene composite,
+        the greatest possible percentage of data comes from the most
+        recent results.
+        """
+        
+        scene_boundaries = []
+        scene_ids = []
+        
+        for scene in results:
+            
+            # check datasource
+            if scene.datasource.id != datasource_id:
+                raise ValueError(
+                    "Scene datasource type '{}' doesn't match specified datasource type '{}'.".format(
+                        scene.datasource.id, datasource_id))
+                    
+            # convert scene boundary to polygon
+            scene_boundary = scene.dataFootprint
+            scene_boundary_shape = geometry.shape(scene_boundary.__dict__['_Model__dict'])
+            
+            # add scene polygon to list of scene polygons
+            scene_boundaries.append(scene_boundary_shape)
+            # add scene id to list of scene ids
+            scene_ids.append(scene.id)
+            # merge all scene polygon shapes into 1 larger polygon
+            aoi_coverage = cascaded_union(scene_boundaries)
+            
+            if aoi_coverage.contains(aoi_polygon):
+                # reverse scene_ids list so that most recent imagery will
+                # be on top in project. the effect of this is that the 
+                # greatest possible percentage of the aoi is from the most
+                # recent data.
+                
+                ordered_scenes = scene_ids[::-1]
+                
+                return ordered_scenes
+        
+        # if aoi cannot be covered by scenes    
+        return "Insufficient imagery available."
 
     def visualize(self, scene, zoom_level=0.2, aoi_polygon=None, bbox=None):
         """
