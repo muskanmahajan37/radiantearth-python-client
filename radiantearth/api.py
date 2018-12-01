@@ -406,10 +406,7 @@ class API(object):
         """
         Takes a list of scene objects (from get_scenes()) and returns 
         an ordered list of scene ids from most recent time (in results query) 
-        that cover aoi. Scene ids are reversed so the most recent scene 
-        is last, with the effect that in the platform scene composite,
-        the greatest possible percentage of data comes from the most
-        recent results.
+        that cover aoi. First position in list represents most recent scene. 
         """
         
         scene_boundaries = []
@@ -435,14 +432,8 @@ class API(object):
             aoi_coverage = cascaded_union(scene_boundaries)
             
             if aoi_coverage.contains(aoi_polygon):
-                # reverse scene_ids list so that most recent imagery will
-                # be on top in project. the effect of this is that the 
-                # greatest possible percentage of the aoi is from the most
-                # recent data.
                 
-                ordered_scenes = scene_ids[::-1]
-                
-                return ordered_scenes
+                return scene_ids
         
         # if aoi cannot be covered by scenes    
         return "Insufficient imagery available."
