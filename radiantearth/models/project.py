@@ -89,13 +89,47 @@ class Project(object):
  
         return Project(project, api)
 
-    def add_scenes(self, scene_ids=[]):
+    def add_scenes(self, sceneIDs=[]):
         """
         Add unordered list of scenes to a project.
         Returns integer of number of new scenes being ingested into project.
         """
         return self.api.client.Imagery.post_projects_projectID_scenes(
-                projectID=self.id, scenes=scene_ids).future.result().json()    
+                projectID=self.id, scenes=sceneIDs).future.result().json()    
+    
+    def set_scene_order(self, sceneIDs):
+        """
+        Set the order of scenes in a project. The first scene id in sceneIDs will be
+        on the very top layer, the last will be on the bottom.
+        
+        Args:
+            sceneIDs (list): a list of platform defined scene ids already in the project.
+            (functionality still works even if one or more of the scenes is still being
+            ingested.)
+            
+            ex:
+            
+            sceneIDs = ['cf25a31c-364a-4e6b-9c0f-e92a8732e0a3','da841d25-9fd5-476b-ae10-a029d0e25a41']
+            
+        Returns:
+            Nothing, but will raise a KeyError or ValueError if sceneIDs don't
+            1:1 match actual scenes in project.
+            
+            Raises an http error if a non-http 2XX status code is returned.
+        """
+        proj_scenes = {scene.id for scene in self.get_scenes()}
+        
+        # validation
+        for scene in sceneIDs:
+            proj_scenes.remove(scene)
+        if proj_scenes:
+            raise ValueError(
+                    "Input sceneIDs did not match actual project sceneIDs")
+        
+        r = self.api.client.Imagery.put_projects_projectID_order(projectID=self.id, sceneIDs=sceneIDs).future.result()
+        
+        # throw error if not a 2XX status code
+        r.raise_for_status()
     
     def get_center(self):
         """Get the center of this project's extent"""
@@ -258,12 +292,12 @@ class Project(object):
         return get_all_paginated(get_page)
 
     def get_ordered_scene_ids(self):
-        def get_page(page):
-            return self.api.client.Imagery.get_projects_uuid_order(
-                uuid=self.id, page=page).result()
-
-        # Need to reverse so that order is from bottom-most to top-most layer.
-        return list(reversed(get_all_paginated(get_page)))
+        """
+        Returns dict of {order:sceneID} for all scenes in project.
+        Order is 0-indexed, with 0 representing the top-most-layer
+        of the composite.
+        """
+        return {scene.sceneOrder:scene.id for scene in self.get_scenes()}
 
     def get_scenes_ingest_status(self):
         return {scene.id:scene.statusFields.ingestStatus for scene in self.get_scenes()}

@@ -356,7 +356,7 @@ class API(object):
 
     def convert_date_isoformat(self, datestring):
         """"
-        Convert datestrings  of L8format 'yyyy-mm-dd' to Iso 8601 timestamp format
+        Convert datestrings  of either L8 or MODIS to Iso 8601 timestamp format
         """
         
         # MODIS/Terra and MODIS/Aqua
