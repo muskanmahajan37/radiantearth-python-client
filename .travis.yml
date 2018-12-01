@@ -15,9 +15,10 @@ script: tox
 deploy:
   provider: pypi
   user: radiantearth
-  password:
+  password: 
     secure: E1lFY53SbO3UMq3lE5IY5zL1R9ODojqQAJCAdWazkNGvQ2iD3X+IAK0y8Vqkk5oIxxiACsHw/fXIfGLPBZcofB2qSaC72Izdw0GJ4lqNK5Q2/xMBDgqSvz/fi7PZunukTwrSG2jouNIB/vXaFURwKuyjj7S0/171RtI3/o5aJV3xCE9TZVoGF1NMfr1Vnc6BTJKM07w0h2dTzbpLyeSeTb+IrMjDhPX5DVgqcru/D6BrgML1UMg2EXW0LNVqKHcpNJOvZmk9zPFPS7dcu0LN3vEudIDG1aZokgyWFZ3h1of3iL6Cgu8woEzfl3ep0MPmsTAaEDiP/W6aCNajKVV4UgS4RTmi8eVnfuZutAXfedVC0Pk8q8zSe7WMOjIQ6+7K44Y/d/lu3Tm+fRSiB6XhaUYpN630p3duW9rVCkBkxGIa9nIrlBJfRANLU5nYvTuppbhipxVcKUHy6sj6WRy6QkiN39e063Ldj19KJzm+dFx9KyvLFbKxBxKhIcoWvgaj7vrEuOlr9zyX4+CJpl11AiOAnufkrbL9oxpXaDqaH4TP+g2irjT9ayAs4fSHKNKLXkc8lbuzHqAmTVk4wgyR6M9QjA6cckCrLuB5/kESKc1S8/RBVAWx2bSBdoegRS4Pr6bpdBfYaj6vSWvsM4QNkTHjIWrBnwIt7IQ74K7gGdo=
   on:
+    branch: dev    
     tags: true
     distributions: sdist bdist_wheel
     repo: radiantearth/radiantearth-python-client

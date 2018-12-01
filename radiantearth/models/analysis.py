@@ -10,7 +10,7 @@ from ..exceptions import GatewayTimeoutException
 if NOTEBOOK_SUPPORT:
     from ipyleaflet import (
         Map,
-        SideBySideControl,
+#         SideBySideControl,
         TileLayer,
     )
 
