@@ -3,7 +3,7 @@ from distutils.core import setup as dist_setup
 
 dist_setup(
     name="radiantearth",
-    version="0.5.0",
+    version="0.6.0",
     description='A Python client for Radiant Earth Foundation platform, a web tool for '
     'combining, analyzing, and publishing raster data.',
     long_description=open('README.rst').read(),
