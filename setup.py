@@ -30,8 +30,8 @@ setup(
         'boto3 >= 1.4.4',
         'future >= 0.16.0',
         'shapely >= 1.6.4post1',
-        'Cython' == 0.29,
-        'Cartopy' == 0.16.0,
+        'Cython' = 0.29,
+        'Cartopy' = 0.16.0,
         
     ],
     extras_require={
