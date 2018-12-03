@@ -1,7 +1,7 @@
-#import setuptools
-from distutils.core import setup
+import setuptools
+from distutils.core import setup as dist_setup
 
-setup(
+dist_setup(
     name="radiantearth",
     version="0.5.0",
     description='A Python client for Radiant Earth Foundation platform, a web tool for '
@@ -20,7 +20,7 @@ setup(
     ],
     keywords='raster earth-observation geospatial geospatial-processing \
             radiant earth global-development',
-    packages=setup.find_packages(exclude=['tests']),
+    packages=setuptools.find_packages(exclude=['tests']),
     package_data={'': ['*.yml']},
     install_requires=[
         'cryptography >= 2.0.0',
