@@ -5879,14 +5879,11 @@ definitions:
           type: string
           description: 'Status of export'
           enum:
-            - 'CREATED'
+            - 'NOTEXPORTED'
+            - 'TOBEEXPORTED'
             - 'EXPORTING'
             - 'EXPORTED'
-            - 'QUEUED'
-            - 'PROCESSING'
-            - 'COMPLETE'
             - 'FAILED'
-            - 'ABORTED'
         exportType:
           type: string
           description: 'Source of exports'
@@ -5918,14 +5915,11 @@ definitions:
           type: string
           description: 'Status of export'
           enum:
-            - 'CREATED'
+            - 'NOTEXPORTED'
+            - 'TOBEEXPORTED'
             - 'EXPORTING'
             - 'EXPORTED'
-            - 'QUEUED'
-            - 'PROCESSING'
-            - 'COMPLETE'
             - 'FAILED'
-            - 'ABORTED'
   ExportPaginated:
     allOf:
     - $ref: '#/definitions/PaginatedResponse'
