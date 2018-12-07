@@ -20,6 +20,8 @@ import cartopy
 
 import datetime
 
+from .utils import get_all_paginated
+
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -327,7 +329,27 @@ class API(object):
         shape = geometry.shape(geojson['geometry'])
         
         return shape
-    
+
+    def coordinates_from_shape_id(self, shapeID):
+        """
+        Returns Features list of coordinates for one or more GeoJSON features
+        """
+        def convert_to_lists(t):
+            return list(map(convert_to_lists, t)) if isinstance(t, (list, tuple)) else t
+        
+        return convert_to_lists(self.polygon_from_shape_id(shapeID).__geo_interface__['coordinates'])
+
+    def get_shapes(self):
+        """
+        Returns dict of {shapeID:name} of all shapes accessible to user.
+        """
+        def get_page(page):
+            return self.client.Imagery.get_shapes(page=page).result()
+        
+        all_results = get_all_paginated(get_page, list_field='features')
+        
+        return {shape.id:shape.properties['name'] for shape in all_results}
+
     def get_cloud_cover(self, scene):
         """
         Parses either Scene object or scene JSON metadata and returns cloudcover.

@@ -130,7 +130,20 @@ class Project(object):
         
         # throw error if not a 2XX status code
         r.raise_for_status()
-    
+
+    def add_ordered_scenes(self, sceneIDs):
+        """
+        Adds list of scenes to a project and then sets the
+        order of the scenes to the same as the order in
+        the list.
+        
+        For more information see add_scenes() and
+        set_scene_order().
+        """
+        scenes_added = self.add_scenes(sceneIDs=sceneIDs)
+        print("{} scenes added to project.".format(scenes_added))
+        self.set_scene_order(sceneIDs=sceneIDs)
+
     def get_center(self):
         """Get the center of this project's extent"""
         coords = self._project.extent.get('coordinates')
@@ -195,19 +208,111 @@ class Project(object):
         response.raise_for_status()
         return response
 
-    def create_export(self, bbox, zoom=10, raster_size=4000):
-        """Create an export job for this project
-
-        Args:
-            bbox (str): Bounding box (formatted as 'x1,y1,x2,y2') for the download
-            zoom (int): Zoom level for the download
-            raster_size (int): desired tiff size after export, 4000 by default - same as backend
-
-        Returns:
-            Export
+    def create_export(self, resolution, coordinates):
         """
-        return Export.create_export(
-            self.api, bbox=bbox, zoom=zoom, project=self, raster_size=raster_size)
+        Create an export process. Returns an exportID.
+        By default requires coordinates generated from 
+        api.coordinates_from_shape_id(shapeID).
+        
+        If coordinates not passed in, generates an export
+        covering all scenes in project.
+        
+        Resolution is the zoomed level applied to all bands of data.
+        
+        For more information on resolution:
+        
+        https://wiki.openstreetmap.org/wiki/Zoom_levels
+        
+        Detailed information about the resolution/band of Landsat:
+        
+        https://landsat.usgs.gov/what-are-band-designations-landsat-satellites
+        
+        Detailed information about the resolution/band of Sentinel-2:
+        
+        https://earth.esa.int/web/sentinel/user-guides/sentinel-2-msi/resolutions/spatial
+        
+        and
+        
+        https://www.gdal.org/frmt_sentinel2.html
+        
+        *Note* As of 12/06/2018 exporting unprojected (Web Mercator)
+        and native pixel resolution (unzoomed) is not possible. We are 
+        working towards enabling this functionality in future releases.
+        
+        """
+
+        # to cut an export to a shape
+        if coordinates:
+            
+            # Confirm/map coordinates are/to MultiPolygon format (depth = 4)
+            depth = lambda L: isinstance(L, list) and max(map(depth, L)) + 1
+            
+            if depth(coordinates) == 3:
+                coordinates = [coordinates]
+                
+            if depth(coordinates) != 4:
+                raise ValueError("Coordinates do have correct dimmension")
+            
+            export = {
+                'projectId': self.id,
+                # for an analysis
+                'toolRunId': None,
+                'exportStatus': 'NOTEXPORTED',
+                'exportType': 'S3',
+                'visibility':'PRIVATE',
+                'exportOptions': { 'resolution': resolution,
+                                  'crop': False,
+                                  'raw': False, 
+                                  'mask': {
+                                      'type': 'MultiPolygon',
+                                      'coordinates': coordinates
+                                  }
+                            }
+                        }
+            
+        # to generate an export covering all scenes in project
+        else:
+            export = {
+            'projectId': self.id,
+            # for an analysis
+            'toolRunId': None,
+            'exportStatus': 'NOTEXPORTED',
+            'exportType': 'S3',
+            'visibility':'PRIVATE',
+            'exportOptions': { 'resolution': resolution,
+                              'crop': False,
+                              'raw': False, 
+                              'mask': None
+                        }
+                    }
+        
+        return self.api.client.Imagery.post_exports(Export=export).future.result().json()['id']
+
+    def export_from_shape_id(self, shapeID, resolution=10):
+        """
+        Creates an export from a shapeId. For more information
+        on resolution, see docstring for create_export()
+        """
+        coordinates = self.api.coordinates_from_shape_id(shapeID)
+        return self.create_export(resolution, coordinates)
+
+    def get_export_status(self, exportID):
+        """
+        Returns export status. Possible values are:
+        "NOTEXPORTED" - Export created.
+        "TOBEEXPORTED" - Export queued. 
+        "EXPORTING" - Export in progress.
+        "EXPORTED" - Export complete, available at url.
+        "FAILED" - Export failed.
+        """
+        r = (self.api.client.Imagery.get_exports_exportID(exportID=exportID)
+                 .future
+                 .result()
+                 .json()['exportStatus']
+            )
+        
+        return r
+
 
     def geotiff(self, bbox, zoom=10, raw=False):
         """Download this project as a geotiff
