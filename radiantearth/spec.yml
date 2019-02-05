@@ -3264,9 +3264,15 @@ paths:
           type: string
           description: |
             The filename of the file the user wishes to download. Filenames of an export need to first be fetched.
+        - name: token
+          required: true
+          in: query
+          type: string
+          description: |
+            API token to fetch the file with. This endpoint does not read auth headers.
       responses:
-        200:
-          description: 'The content of the reqested file'
+        307:
+          description: 'Redirect to signed S3 url for the resource'
           schema:
             type: file
         403:
@@ -3282,7 +3288,6 @@ paths:
           description: 'Unexpected error'
           schema:
             $ref: '#/definitions/Error'
-
   /shapes/:
     x-resource: Projects
     get:
